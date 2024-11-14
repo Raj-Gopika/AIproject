@@ -2,11 +2,22 @@ import random
 
 import tkinter as tk
 
+from debugpy.common.timestamp import reset
+
+
 class Program:
     def __init__(self):
         self.map = []
         self.MapSize = 0
         self.ObstacleMultiplier = 2  # this will be multiplied by the map size
+
+        #initilaizing window and canvas
+        self.root = tk.Tk()
+        self.root.title("Map Visualization")
+        self.canvas = None
+
+        reset_button = tk.Button(self.root, text="Reset Map", command=self.create_map_with_path)
+        reset_button.pack(pady=10)
 
     def create_map_with_path(self):
         self.MapSize = random.randint(12, 16)
@@ -39,6 +50,7 @@ class Program:
         self.place_obstacles(num_obstacles, trail)
 
         self.display_map()
+        self.display_map_gui()
 
     def place_obstacles(self, num_obstacles, trail):
         trail_path = set(trail)
@@ -83,12 +95,14 @@ class Program:
 
     # GUI for the map
     def display_map_gui(self):
+        #Destroy the previous canvas
+        if self.canvas:
+            self.canvas.destroy()
+
         #Create Window
         cell_size = 25  # Size of each cell in pixels
-        root = tk.Tk()
-        root.title("Map Visualization")
-        canvas = tk.Canvas(root, width=self.MapSize * cell_size, height=self.MapSize * cell_size)
-        canvas.pack()
+        self.canvas = tk.Canvas(self.root, width=self.MapSize * cell_size, height=self.MapSize * cell_size)
+        self.canvas.pack()
 
         # Add colors to cells
         colors = {
@@ -107,9 +121,9 @@ class Program:
                 x2 = x1 + cell_size
                 y2 = y1 + cell_size
                 color = colors.get(self.map[i][j], "white")
-                canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="gray")
+                self.canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="gray")
 
-        root.mainloop()
+        self.root.mainloop()
 
 
 # Run the program

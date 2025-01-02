@@ -167,7 +167,7 @@ class MapVisualizer:
 
         elif choice == "BFS Graph":
             print("Running BFS Graph Search...")
-            bfs_path_graph,visited_nodes = bfs_graph(self.program)
+            bfs_path_graph,visited_nodes, unvisited_nodes = bfs_graph(self.program)
             print("Path (Graph Search):", bfs_path_graph)
 
             if bfs_path_graph:
@@ -175,11 +175,11 @@ class MapVisualizer:
                 for r, c in bfs_path_graph:
                     if self.program.map[r][c] == 0:  # Mark path in the grid
                         self.program.map[r][c] = 5
-                self.display_map(path=bfs_path_graph, visited_nodes=visited_nodes)
+                self.display_map(path=bfs_path_graph, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
         elif choice == "BFS Tree":
             print("Running BFS Tree Search...")
-            bfs_path_tree, visited_nodes = bfs_tree(self.program)
+            bfs_path_tree, visited_nodes,unvisited_nodes = bfs_tree(self.program)
             print("Path (Tree Search):", bfs_path_tree)
 
             if bfs_path_tree:
@@ -187,7 +187,7 @@ class MapVisualizer:
                 for r, c in bfs_path_tree:
                     if self.program.map[r][c] == 0:  # Mark path in the grid
                         self.program.map[r][c] = 5
-                self.display_map(path=bfs_path_tree, visited_nodes=visited_nodes)
+                self.display_map(path=bfs_path_tree, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
         elif choice == "A* Graph":
             print("Running A* Graph Search...")
@@ -224,7 +224,7 @@ class MapVisualizer:
                         self.program.map[r][c] = 5
                 self.display_map(path=UFS_path, visited_nodes=visited_nodes)
 
-    def display_map(self, path=None, visited_nodes=None):
+    def display_map(self, path=None, visited_nodes=None, unvisited_nodes=None):
         # Destroy the previous canvas
         if self.canvas:
             self.canvas.destroy()
@@ -239,12 +239,12 @@ class MapVisualizer:
             0: "white",  # Empty cell
             1: "green",  # Start
             2: "red",  # Goal
-            #5: "blue",  # Path
             99: "black"  # Wall or obstacle
         }
 
         path_color = "purple"
         visited_color = 'yellow'
+        unvisited_color = "orange"
 
         # Draw the map
         for i in range(self.program.MapSize):
@@ -262,6 +262,8 @@ class MapVisualizer:
                     color = path_color
                 elif visited_nodes and (i, j) in visited_nodes:
                     color = visited_color
+                elif unvisited_nodes and (i, j) in unvisited_nodes:
+                    color = unvisited_color
                 else:
                     color = colors.get(self.program.map[i][j], "white")
 
@@ -288,6 +290,7 @@ def bfs_graph(program):
     # BFS initialization
     queue = [[start]]
     visited = set()
+    unvisited = set()
 
     while queue:
         path = queue.pop(0)
@@ -299,7 +302,9 @@ def bfs_graph(program):
 
         # Check if goal is reached
         if current == goal:
-            return path, visited
+            for remaining_path in queue:
+                unvisited.update(remaining_path)
+            return path, visited, unvisited
 
         # Explore neighbors
         for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
@@ -336,6 +341,7 @@ def bfs_tree(program):
     # BFS initialization
     queue = [[start]]
     visited = set()
+    unvisited = set()
 
     while queue:
         path = queue.pop(0)
@@ -347,7 +353,9 @@ def bfs_tree(program):
 
         # Check if goal is reached
         if current == goal:
-            return path, visited
+            for remaining_path in queue:
+                unvisited.update(remaining_path)
+            return path, visited, unvisited
 
         # Explore neighbors
         for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:

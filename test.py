@@ -1,7 +1,10 @@
 import random
 import heapq
 import tkinter as tk
+import math
+from queue import PriorityQueue
 
+#Generate Environment class
 class Program:
     def __init__(self):
         self.map = []
@@ -135,7 +138,7 @@ class Program:
         for row in self.map:
             print(" ".join(str(cell).rjust(3) for cell in row))
 
-
+#Create GUI for displaying Map
 class MapVisualizer:
     def __init__(self, program):
         self.program = program
@@ -146,7 +149,7 @@ class MapVisualizer:
         # Dropdown menu options
         self.search_method = tk.StringVar(self.root)
         self.search_method.set("None")  # Default value
-        options = ["None", "BFS Graph", "BFS Tree", "A* Graph", "A* Tree"]
+        options = ["None", "BFS Graph", "BFS Tree", "A* Graph", "A* Tree", "UFS"]
 
         dropdown = tk.OptionMenu(self.root, self.search_method, *options, command=self.run_search)
         dropdown.pack(pady=10)
@@ -164,51 +167,64 @@ class MapVisualizer:
 
         elif choice == "BFS Graph":
             print("Running BFS Graph Search...")
-            path_graph,visited_nodes = bfs_graph(self.program)
-            print("Path (Graph Search):", path_graph)
+            bfs_path_graph,visited_nodes = bfs_graph(self.program)
+            print("Path (Graph Search):", bfs_path_graph)
 
-            if path_graph:
+            if bfs_path_graph:
                 print("Displaying path from Graph Search...")
-                for r, c in path_graph:
+                for r, c in bfs_path_graph:
                     if self.program.map[r][c] == 0:  # Mark path in the grid
                         self.program.map[r][c] = 5
-                self.display_map(bfs_path=path_graph, visited_nodes=visited_nodes)
+                self.display_map(path=bfs_path_graph, visited_nodes=visited_nodes)
 
         elif choice == "BFS Tree":
             print("Running BFS Tree Search...")
-            path_tree, visited_nodes = bfs_tree(self.program)
-            print("Path (Tree Search):", path_tree)
+            bfs_path_tree, visited_nodes = bfs_tree(self.program)
+            print("Path (Tree Search):", bfs_path_tree)
 
-            if path_tree:
+            if bfs_path_tree:
                 print("Displaying path from Tree Search...")
-                for r, c in path_tree:
+                for r, c in bfs_path_tree:
                     if self.program.map[r][c] == 0:  # Mark path in the grid
                         self.program.map[r][c] = 5
-                self.display_map(bfs_path=path_tree, visited_nodes=visited_nodes)
+                self.display_map(path=bfs_path_tree, visited_nodes=visited_nodes)
 
         elif choice == "A* Graph":
             print("Running A* Graph Search...")
-            path_astar_graph, visited_nodes = a_star_graph(self.program)
-            print("Path (A* Graph Search):", path_astar_graph)
+            astar_path_graph, visited_nodes = a_star_graph(self.program)
+            print("Path (A* Graph Search):", astar_path_graph)
 
-            if path_astar_graph:
-                for r, c in path_astar_graph:
+            if astar_path_graph:
+                for r, c in astar_path_graph:
                     if self.program.map[r][c] == 0:
                         self.program.map[r][c] = 5
-                self.display_map(bfs_path=path_astar_graph, visited_nodes=visited_nodes)
+                self.display_map(path=astar_path_graph, visited_nodes=visited_nodes)
 
         elif choice == "A* Tree":
             print("Running A* Tree Search...")
-            path_astar_tree, visited_nodes = a_star_tree(self.program)
-            print("Path (A* Tree Search):", path_astar_tree)
+            astar_path_tree, visited_nodes = a_star_tree(self.program)
+            print("Path (A* Tree Search):", astar_path_tree)
 
-            if path_astar_tree:
-                for r, c in path_astar_tree:
+            if astar_path_tree:
+                for r, c in astar_path_tree:
                     if self.program.map[r][c] == 0:
                         self.program.map[r][c] = 5
-                self.display_map(bfs_path=path_astar_tree, visited_nodes=visited_nodes)
+                self.display_map(path=astar_path_tree, visited_nodes=visited_nodes)
 
-    def display_map(self, bfs_path=None, visited_nodes=None):
+
+        elif choice == "UFS":
+            print("Running Uniform Cost Search (UFS)...")
+            UFS_path, visited_nodes = UFS(self.program, include_diagonal_movement=False)
+            print("Path (UFS):", UFS_path)
+
+            if UFS_path:
+                print("Displaying path from UFS...")
+                for r, c in UFS_path:
+                    if self.program.map[r][c] == 0:  # Mark path in the grid
+                        self.program.map[r][c] = 5
+                self.display_map(path=UFS_path, visited_nodes=visited_nodes)
+
+    def display_map(self, path=None, visited_nodes=None):
         # Destroy the previous canvas
         if self.canvas:
             self.canvas.destroy()
@@ -223,11 +239,11 @@ class MapVisualizer:
             0: "white",  # Empty cell
             1: "green",  # Start
             2: "red",  # Goal
-            5: "blue",  # Path
+            #5: "blue",  # Path
             99: "black"  # Wall or obstacle
         }
 
-        bfs_color = "purple"
+        path_color = "purple"
         visited_color = 'yellow'
 
         # Draw the map
@@ -242,8 +258,8 @@ class MapVisualizer:
                     color = "green"
                 elif self.program.map[i][j] == 2:
                     color  = "red"
-                elif bfs_path and (i, j) in bfs_path:
-                    color = bfs_color
+                elif path and (i, j) in path:
+                    color = path_color
                 elif visited_nodes and (i, j) in visited_nodes:
                     color = visited_color
                 else:
@@ -251,7 +267,7 @@ class MapVisualizer:
 
                 self.canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="gray")
 
-
+#Search Algorithms
 def bfs_graph(program):
     grid = program.map
     rows, cols = program.MapSize, program.MapSize
@@ -461,6 +477,101 @@ def a_star_tree(program):
 def heuristic(node, goal):
     """Heuristic function for A*. Uses Manhattan distance."""
     return abs(node[0] - goal[0]) + abs(node[1] - goal[1])
+
+class Node:
+    def __init__(self, state, cost, parent):
+        self.state = state
+        self.cost = cost
+        self.parent = parent
+
+def UFS(program, include_diagonal_movement=False):
+    """
+    Uniform Cost Search (UFS) algorithm to find the shortest path.
+    """
+    map = program.map
+    start, goal = None, None
+
+    # Locate the start and goal points
+    for i in range(program.MapSize):
+        for j in range(program.MapSize):
+            if map[i][j] == 1:
+                start = (i, j)
+            elif map[i][j] == 2:
+                goal = (i, j)
+
+    if not start or not goal:
+        print("Start or goal not found!")
+        return [], []
+
+    diagonal_cost = math.sqrt(2)
+    open_set = PriorityQueue()
+    open_set.put((0, Node(start, 0, None)))  # (priority, Node)
+    visited = set()
+    path = []
+    updated_map = [row[:] for row in map]  # Copy the map to update it
+
+    while not open_set.empty():
+        current_cost, current_node = open_set.get()
+
+        if current_node.state in visited:
+            continue
+        visited.add(current_node.state)
+
+        x, y = current_node.state
+
+        if map[x][y] != 1 and map[x][y] != 2:  # Mark visited nodes
+            updated_map[x][y] = 3
+
+        if current_node.state == goal:  # Goal reached
+            node_path = current_node
+            while node_path:
+                path.insert(0, node_path.state)
+                x, y = node_path.state
+                if map[x][y] != 1 and map[x][y] != 2:
+                    updated_map[x][y] = 4
+                node_path = node_path.parent
+            return path, visited
+
+        # Define movement directions
+        directions = [
+            (-1, 0),  # up
+            (0, 1),   # right
+            (1, 0),   # down
+            (0, -1)   # left
+        ]
+
+        if include_diagonal_movement:
+            directions += [
+                (-1, 1),   # up-right
+                (1, 1),    # down-right
+                (1, -1),   # down-left
+                (-1, -1)   # up-left
+            ]
+
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < len(map) and 0 <= ny < len(map[0]) and (nx, ny) not in visited:
+                if map[nx][ny] != 99:  # Ensure the cell is not an obstacle
+                    movement_cost = diagonal_cost if abs(dx) == 1 and abs(dy) == 1 else 1
+                    new_cost = current_node.cost + movement_cost
+                    neighbor_node = Node((nx, ny), new_cost, current_node)
+                    open_set.put((new_cost, neighbor_node))
+
+            node_path = []
+            while current_node:
+                node_path.append(current_node.state)
+                current_node = current_node.parent
+            node_path.reverse()
+            return node_path, visited  # Return the path and visited nodes
+
+        # Define movements (cardinal and optional diagonal)
+        movements = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        if include_diagonal_movement:
+            movements += [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+
+    return path, visited  # Return empty path if no solution
+
+
 
 # Run the program
 if __name__ == "__main__":

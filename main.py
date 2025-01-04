@@ -599,6 +599,7 @@ def ucs_tree_search(program, include_diagonal_movement=False):
     visited = set()
     unvisited = set()
     total_nodes_visited = 0
+    move_cost = 0
 
     # Define movement directions
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, down, left, right
@@ -624,6 +625,7 @@ def ucs_tree_search(program, include_diagonal_movement=False):
             memory_after = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
             print(f"Memory Used: {memory_after - memory_before:.4f} MB")
             print("Total nodes visited: ", total_nodes_visited)
+            print("Total cost of execution: ", move_cost)
             return path, visited, unvisited
 
         for dr, dc in directions:
@@ -634,7 +636,7 @@ def ucs_tree_search(program, include_diagonal_movement=False):
                 and map[neighbor[0]][neighbor[1]] != 99
                 and neighbor not in visited
             ):
-                move_cost = diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
+                move_cost += diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
                 heapq.heappush(open_set, (cost + move_cost, neighbor, path + [current]))
 
     print("No path found!")

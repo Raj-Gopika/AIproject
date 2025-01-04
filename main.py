@@ -167,7 +167,7 @@ class MapVisualizer:
         if choice == "None":
             self.display_map()  # Display the map without any path
 
-        elif choice == "BFS Graph":
+        elif choice == "BFS Graph Simple":
             print("\nRunning BFS Graph Search...")
             bfs_path_graph,visited_nodes, unvisited_nodes = bfs_graph(self.program, include_diagonal_movement=False)
             print("Path (BFS Graph Search):", bfs_path_graph)
@@ -179,9 +179,33 @@ class MapVisualizer:
                         self.program.map[r][c] = 5
                 self.display_map(path=bfs_path_graph, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
-        elif choice == "BFS Tree":
+        elif choice == "BFS Graph Diagonal":
+            print("\nRunning BFS Graph Search...")
+            bfs_path_graph,visited_nodes, unvisited_nodes = bfs_graph(self.program, include_diagonal_movement=True)
+            print("Path (BFS Graph Search):", bfs_path_graph)
+
+            if bfs_path_graph:
+                print("Displaying path from Graph Search...")
+                for r, c in bfs_path_graph:
+                    if self.program.map[r][c] == 0:  # Mark path in the grid
+                        self.program.map[r][c] = 5
+                self.display_map(path=bfs_path_graph, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
+
+        elif choice == "BFS Tree Simple":
             print("\nRunning BFS Tree Search...")
             bfs_path_tree, visited_nodes,unvisited_nodes = bfs_tree(self.program, include_diagonal_movement=False)
+            print("Path (BFS Tree Search):", bfs_path_tree)
+
+            if bfs_path_tree:
+                print("Displaying path from Tree Search...")
+                for r, c in bfs_path_tree:
+                    if self.program.map[r][c] == 0:  # Mark path in the grid
+                        self.program.map[r][c] = 5
+                self.display_map(path=bfs_path_tree, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
+
+        elif choice == "BFS Tree Diagonal":
+            print("\nRunning BFS Tree Search...")
+            bfs_path_tree, visited_nodes,unvisited_nodes = bfs_tree(self.program, include_diagonal_movement=True)
             print("Path (BFS Tree Search):", bfs_path_tree)
 
             if bfs_path_tree:
@@ -213,10 +237,20 @@ class MapVisualizer:
                         self.program.map[r][c] = 5
                 self.display_map(path=astar_path_tree, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
-
-        elif choice == "UCS":
+        elif choice == "UCS Simple":
             print("\nRunning Uniform Cost Search (UCS)...")
             ucs_path, visited_nodes,unvisited_nodes = ucs_tree_search(self.program, include_diagonal_movement=False)
+            print("Path (UCS):", ucs_path)
+
+            if ucs_path:
+                for r, c in ucs_path:
+                    if self.program.map[r][c] == 0:  # Mark path in the grid
+                        self.program.map[r][c] = 5
+                self.display_map(path=ucs_path, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
+
+        elif choice == "UCS Diagonal":
+            print("\nRunning Uniform Cost Search (UCS)...")
+            ucs_path, visited_nodes,unvisited_nodes = ucs_tree_search(self.program, include_diagonal_movement=True)
             print("Path (UCS):", ucs_path)
 
             if ucs_path:

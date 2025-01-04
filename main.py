@@ -4,7 +4,7 @@ import random
 import heapq
 import tkinter as tk
 import math
-from queue import PriorityQueue
+
 
 #Generate Environment class
 class Program:
@@ -151,7 +151,7 @@ class MapVisualizer:
         # Dropdown menu options
         self.search_method = tk.StringVar(self.root)
         self.search_method.set("None")  # Default value
-        options = ["None", "BFS Graph", "BFS Tree", "A* Graph", "A* Tree", "UCS"]
+        options = ["None", "BFS Graph Simple", "BFS Graph Diagonal", "BFS Tree Simple", "BFS Tree Diagonal", "A* Graph", "A* Tree", "UCS Simple", "UCS Diagonal"]
 
         dropdown = tk.OptionMenu(self.root, self.search_method, *options, command=self.run_search)
         dropdown.pack(pady=10)
@@ -168,7 +168,7 @@ class MapVisualizer:
             self.display_map()  # Display the map without any path
 
         elif choice == "BFS Graph Simple":
-            print("\nRunning BFS Graph Search...")
+            print("\nRunning BFS Graph Search...(Simple)")
             bfs_path_graph,visited_nodes, unvisited_nodes = bfs_graph(self.program, include_diagonal_movement=False)
             print("Path (BFS Graph Search):", bfs_path_graph)
 
@@ -180,7 +180,7 @@ class MapVisualizer:
                 self.display_map(path=bfs_path_graph, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
         elif choice == "BFS Graph Diagonal":
-            print("\nRunning BFS Graph Search...")
+            print("\nRunning BFS Graph Search...(Diagonal enabled)")
             bfs_path_graph,visited_nodes, unvisited_nodes = bfs_graph(self.program, include_diagonal_movement=True)
             print("Path (BFS Graph Search):", bfs_path_graph)
 
@@ -192,7 +192,7 @@ class MapVisualizer:
                 self.display_map(path=bfs_path_graph, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
         elif choice == "BFS Tree Simple":
-            print("\nRunning BFS Tree Search...")
+            print("\nRunning BFS Tree Search...(Simple)")
             bfs_path_tree, visited_nodes,unvisited_nodes = bfs_tree(self.program, include_diagonal_movement=False)
             print("Path (BFS Tree Search):", bfs_path_tree)
 
@@ -204,7 +204,7 @@ class MapVisualizer:
                 self.display_map(path=bfs_path_tree, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
         elif choice == "BFS Tree Diagonal":
-            print("\nRunning BFS Tree Search...")
+            print("\nRunning BFS Tree Search...(Diagonal enabled)")
             bfs_path_tree, visited_nodes,unvisited_nodes = bfs_tree(self.program, include_diagonal_movement=True)
             print("Path (BFS Tree Search):", bfs_path_tree)
 
@@ -238,7 +238,7 @@ class MapVisualizer:
                 self.display_map(path=astar_path_tree, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
         elif choice == "UCS Simple":
-            print("\nRunning Uniform Cost Search (UCS)...")
+            print("\nRunning Uniform Cost Search (UCS - Simple)...")
             ucs_path, visited_nodes,unvisited_nodes = ucs_tree_search(self.program, include_diagonal_movement=False)
             print("Path (UCS):", ucs_path)
 
@@ -249,7 +249,7 @@ class MapVisualizer:
                 self.display_map(path=ucs_path, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
         elif choice == "UCS Diagonal":
-            print("\nRunning Uniform Cost Search (UCS)...")
+            print("\nRunning Uniform Cost Search (UCS - Diagonal enabled)...")
             ucs_path, visited_nodes,unvisited_nodes = ucs_tree_search(self.program, include_diagonal_movement=True)
             print("Path (UCS):", ucs_path)
 

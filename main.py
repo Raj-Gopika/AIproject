@@ -216,14 +216,14 @@ class MapVisualizer:
 
         elif choice == "UCS":
             print("\nRunning Uniform Cost Search (UCS)...")
-            ucs_path, visited_nodes = ucs_tree_search(self.program, include_diagonal_movement=False)
+            ucs_path, visited_nodes,unvisited_nodes = ucs_tree_search(self.program, include_diagonal_movement=False)
             print("Path (UCS):", ucs_path)
 
             if ucs_path:
                 for r, c in ucs_path:
                     if self.program.map[r][c] == 0:  # Mark path in the grid
                         self.program.map[r][c] = 5
-                self.display_map(path=ucs_path, visited_nodes=visited_nodes)
+                self.display_map(path=ucs_path, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
     def display_map(self, path=None, visited_nodes=None, unvisited_nodes=None):
         # Destroy the previous canvas
@@ -567,6 +567,14 @@ def heuristic(node, goal):
     return abs(node[0] - goal[0]) + abs(node[1] - goal[1])
 
 def ucs_tree_search(program, include_diagonal_movement=False):
+    # Note down method start time
+    start_time = time.time()
+
+    # Note down memory before the process
+    process = psutil.Process()
+    memory_before = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
+
+    diagonal_cost = math.sqrt(2)
     map = program.map
     start, goal = None, None
 
@@ -583,26 +591,40 @@ def ucs_tree_search(program, include_diagonal_movement=False):
         return [], set()
 
     # Priority queue: (cost, current_position, path)
-    open_set = PriorityQueue()
-    open_set.put((0, start, [start]))
+    #open_set = PriorityQueue()
+    #open_set.put((0, start, [start]))
+    open_set = []
+    heapq.heappush(open_set, (0, start, []))  # (cost, state, path)
+    #updated_map = [row[:] for row in map]
     visited = set()
+    unvisited = set()
+    total_nodes_visited = 0
 
     # Define movement directions
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, down, left, right
     if include_diagonal_movement:
         directions.extend([(-1, -1), (-1, 1), (1, -1), (1, 1)])  # Diagonals
 
-    while not open_set.empty():
-        cost, current, path = open_set.get()
+    while open_set:
+        cost, current, path = heapq.heappop(open_set)
 
-        if current in visited:
-            continue
+        #if current in visited:
+            #continue
 
         visited.add(current)
+        total_nodes_visited += 1
 
         # Check if the goal is reached
         if current == goal:
-            return path, visited
+            for _, position, _ in open_set:
+                unvisited.add(position)
+            end_time = time.time()  # `Measure end time to calculate execution time
+            print("Execution Time: {:.6f} seconds".format(end_time - start_time))
+            # Memory usage after the function
+            memory_after = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
+            print(f"Memory Used: {memory_after - memory_before:.4f} MB")
+            print("Total nodes visited: ", total_nodes_visited)
+            return path, visited, unvisited
 
         for dr, dc in directions:
             neighbor = (current[0] + dr, current[1] + dc)
@@ -612,8 +634,8 @@ def ucs_tree_search(program, include_diagonal_movement=False):
                 and map[neighbor[0]][neighbor[1]] != 99
                 and neighbor not in visited
             ):
-                new_cost = cost + (1 if abs(dr) + abs(dc) == 1 else math.sqrt(2))  # Adjust cost for diagonal
-                open_set.put((new_cost, neighbor, path + [neighbor]))
+                move_cost = diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
+                heapq.heappush(open_set, (cost + move_cost, neighbor, path + [current]))
 
     print("No path found!")
     return [], visited

@@ -240,7 +240,7 @@ class MapVisualizer:
                 self.display_map(path=astar_path_tree, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
         elif choice == "UCS Graph Simple":
-            print("\nRunning Uniform Cost Search (UCS - Simple)...")
+            print("\nRunning Uniform Cost Graph Search (UCS - Simple)...")
             ucs_path, visited_nodes,unvisited_nodes = ucs_graph_search(self.program, include_diagonal_movement=False)
             print("Path (UCS):", ucs_path)
 
@@ -251,7 +251,7 @@ class MapVisualizer:
                 self.display_map(path=ucs_path, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
         elif choice == "UCS Graph Diagonal":
-            print("\nRunning Uniform Cost Search (UCS - Diagonal enabled)...")
+            print("\nRunning Uniform Cost Graph Search (UCS - Diagonal enabled)...")
             ucs_path, visited_nodes,unvisited_nodes = ucs_graph_search(self.program, include_diagonal_movement=True)
             print("Path (UCS):", ucs_path)
 
@@ -262,7 +262,7 @@ class MapVisualizer:
                 self.display_map(path=ucs_path, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
         elif choice == "UCS Tree Simple":
-            print("\nRunning Uniform Cost Search (UCS - Simple)...")
+            print("\nRunning Uniform Cost Tree Search (UCS - Simple)...")
             ucs_path, visited_nodes, unvisited_nodes = ucs_tree_search(self.program, include_diagonal_movement=False)
             print("Path (UCS):", ucs_path)
 
@@ -273,7 +273,7 @@ class MapVisualizer:
                 self.display_map(path=ucs_path, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
         elif choice == "UCS Tree Diagonal":
-            print("\nRunning Uniform Cost Search (UCS - Diagonal enabled)...")
+            print("\nRunning Uniform Cost Tree Search (UCS - Diagonal enabled)...")
             ucs_path, visited_nodes, unvisited_nodes = ucs_tree_search(self.program, include_diagonal_movement=True)
             print("Path (UCS):", ucs_path)
 

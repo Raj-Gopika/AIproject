@@ -686,76 +686,11 @@ def ucs_graph_search(program, include_diagonal_movement=False):
                 and map[neighbor[0]][neighbor[1]] != 99
                 and neighbor not in visited
             ):
-                move_cost += diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
+                move_cost = diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
                 heapq.heappush(open_set, (cost + move_cost, neighbor, path + [current]))
 
     print("No path found!")
     return [], visited
-
-def dfs_graph(program):
-
-    # Note down method start time
-    start_time = time.time()
-
-    # Note down memory before the process
-    process = psutil.Process()
-    memory_before = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
-
-    grid = program.map
-    rows, cols = program.MapSize, program.MapSize
-    start, goal = None, None
-
-    # Locate start and goal points
-    for r in range(rows):
-        for c in range(cols):
-            if grid[r][c] == 1:
-                start = (r, c)
-            elif grid[r][c] == 2:
-                goal = (r, c)
-
-    if not start or not goal:
-        print("Start or goal not found!")
-        return []
-
-    # DFS initialization
-    stack = [[start]]  # Stack for DFS paths
-    visited = set()
-    total_nodes_visited = 0
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, down, left, right
-
-    while stack:
-        path = stack.pop()  # Pop the last path (LIFO)
-        current = path[-1]
-
-        if current in visited:
-            continue
-
-        visited.add(current)
-        total_nodes_visited += 1
-
-        # Check if goal is reached
-        if current == goal:
-            end_time = time.time()
-            memory_after = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
-            print("Execution Time: {:.6f} seconds".format(end_time - start_time))
-            print(f"Memory Used: {memory_after - memory_before:.4f} MB")
-            print("Total nodes visited: ", total_nodes_visited)
-            return path
-
-        # Explore neighbors
-        for dr, dc in directions:
-            neighbor = (current[0] + dr, current[1] + dc)
-
-            # Check bounds and obstacle
-            if (
-                0 <= neighbor[0] < rows
-                and 0 <= neighbor[1] < cols
-                and grid[neighbor[0]][neighbor[1]] != 99
-                and neighbor not in visited
-            ):
-                stack.append(path + [neighbor])
-
-    return []  # Return empty list if no path is found
 
 
 def dfs_tree(program):

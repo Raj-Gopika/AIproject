@@ -4,7 +4,7 @@ import random
 import heapq
 import tkinter as tk
 import math
-from queue import PriorityQueue
+
 
 #Generate Environment class
 class Program:
@@ -56,6 +56,7 @@ class Program:
             self.add_line(random_row, random_col, trail_set)
         elif choice == "T_Line":
             self.add_t_line(random_row, random_col, trail_set)
+
 
     def add_square(self, random_row, random_col, trail_set):
         for i in range(9):
@@ -110,7 +111,53 @@ class Program:
         if self.map[x][y] in [1, 2]:
             return False
         return True
+    '''
+    def create_trail(self, start_point, goal):
+        trail = []
+        current = start_point
 
+        # Define movement directions: up, down, left, right
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        while current != goal:
+            r, c = current
+            best_move = None
+            min_distance = float('inf')
+
+            # Check all possible moves
+            for dr, dc in directions:
+                new_r, new_c = r + dr, c + dc
+
+                if self.check_bounds_and_start_end(new_r, new_c):
+                    # Avoid adjacent obstacles
+                    has_adjacent_obstacle = any(
+                        0 <= new_r + adj_dr < self.MapSize and
+                        0 <= new_c + adj_dc < self.MapSize and
+                        self.map[new_r + adj_dr][new_c + adj_dc] == 99
+                        for adj_dr, adj_dc in directions
+                    )
+                    if has_adjacent_obstacle:
+                        continue
+
+                    # Calculate distance to the goal
+                    distance = abs(new_r - goal[0]) + abs(new_c - goal[1])
+
+                    if distance < min_distance:
+                        min_distance = distance
+                        best_move = (new_r, new_c)
+
+            if best_move:
+                self.map[best_move[0]][best_move[1]] = 6  # Mark as part of the trail
+                trail.append(best_move)
+                current = best_move
+            else:
+                # If no valid moves are possible, backtrack
+                print("Trail creation failed, backtracking...")
+                break
+
+        return trail
+    
+    '''
     def create_trail(self, start_point, goal):
         c = goal[1] - 1
         r = goal[0]
@@ -151,7 +198,9 @@ class MapVisualizer:
         # Dropdown menu options
         self.search_method = tk.StringVar(self.root)
         self.search_method.set("None")  # Default value
-        options = ["None", "BFS Graph", "BFS Tree", "A* Graph", "A* Tree", "UCS"]
+        options = ["None", "BFS Graph Simple", "BFS Graph Diagonal", "BFS Tree Simple",
+                   "BFS Tree Diagonal", "A* Graph", "A* Tree", "UCS Graph Simple",  "UCS Graph Diagonal",
+                   "UCS Tree Simple", "UCS Tree Diagonal"]
 
         dropdown = tk.OptionMenu(self.root, self.search_method, *options, command=self.run_search)
         dropdown.pack(pady=10)
@@ -167,8 +216,8 @@ class MapVisualizer:
         if choice == "None":
             self.display_map()  # Display the map without any path
 
-        elif choice == "BFS Graph":
-            print("\nRunning BFS Graph Search...")
+        elif choice == "BFS Graph Simple":
+            print("\nRunning BFS Graph Search...(Simple)")
             bfs_path_graph,visited_nodes, unvisited_nodes = bfs_graph(self.program, include_diagonal_movement=False)
             print("Path (BFS Graph Search):", bfs_path_graph)
 
@@ -179,9 +228,33 @@ class MapVisualizer:
                         self.program.map[r][c] = 5
                 self.display_map(path=bfs_path_graph, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
-        elif choice == "BFS Tree":
-            print("\nRunning BFS Tree Search...")
+        elif choice == "BFS Graph Diagonal":
+            print("\nRunning BFS Graph Search...(Diagonal enabled)")
+            bfs_path_graph,visited_nodes, unvisited_nodes = bfs_graph(self.program, include_diagonal_movement=True)
+            print("Path (BFS Graph Search):", bfs_path_graph)
+
+            if bfs_path_graph:
+                print("Displaying path from Graph Search...")
+                for r, c in bfs_path_graph:
+                    if self.program.map[r][c] == 0:  # Mark path in the grid
+                        self.program.map[r][c] = 5
+                self.display_map(path=bfs_path_graph, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
+
+        elif choice == "BFS Tree Simple":
+            print("\nRunning BFS Tree Search...(Simple)")
             bfs_path_tree, visited_nodes,unvisited_nodes = bfs_tree(self.program, include_diagonal_movement=False)
+            print("Path (BFS Tree Search):", bfs_path_tree)
+
+            if bfs_path_tree:
+                print("Displaying path from Tree Search...")
+                for r, c in bfs_path_tree:
+                    if self.program.map[r][c] == 0:  # Mark path in the grid
+                        self.program.map[r][c] = 5
+                self.display_map(path=bfs_path_tree, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
+
+        elif choice == "BFS Tree Diagonal":
+            print("\nRunning BFS Tree Search...(Diagonal enabled)")
+            bfs_path_tree, visited_nodes,unvisited_nodes = bfs_tree(self.program, include_diagonal_movement=True)
             print("Path (BFS Tree Search):", bfs_path_tree)
 
             if bfs_path_tree:
@@ -213,10 +286,42 @@ class MapVisualizer:
                         self.program.map[r][c] = 5
                 self.display_map(path=astar_path_tree, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
 
+        elif choice == "UCS Graph Simple":
+            print("\nRunning Uniform Cost Graph Search (UCS - Simple)...")
+            ucs_path, visited_nodes,unvisited_nodes = ucs_graph_search(self.program, include_diagonal_movement=False)
+            print("Path (UCS):", ucs_path)
 
-        elif choice == "UCS":
-            print("\nRunning Uniform Cost Search (UCS)...")
-            ucs_path, visited_nodes,unvisited_nodes = ucs_tree_search(self.program, include_diagonal_movement=False)
+            if ucs_path:
+                for r, c in ucs_path:
+                    if self.program.map[r][c] == 0:  # Mark path in the grid
+                        self.program.map[r][c] = 5
+                self.display_map(path=ucs_path, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
+
+        elif choice == "UCS Graph Diagonal":
+            print("\nRunning Uniform Cost Graph Search (UCS - Diagonal enabled)...")
+            ucs_path, visited_nodes,unvisited_nodes = ucs_graph_search(self.program, include_diagonal_movement=True)
+            print("Path (UCS):", ucs_path)
+
+            if ucs_path:
+                for r, c in ucs_path:
+                    if self.program.map[r][c] == 0:  # Mark path in the grid
+                        self.program.map[r][c] = 5
+                self.display_map(path=ucs_path, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
+
+        elif choice == "UCS Tree Simple":
+            print("\nRunning Uniform Cost Tree Search (UCS - Simple)...")
+            ucs_path, visited_nodes, unvisited_nodes = ucs_tree_search(self.program, include_diagonal_movement=False)
+            print("Path (UCS):", ucs_path)
+
+            if ucs_path:
+                for r, c in ucs_path:
+                    if self.program.map[r][c] == 0:  # Mark path in the grid
+                        self.program.map[r][c] = 5
+                self.display_map(path=ucs_path, visited_nodes=visited_nodes, unvisited_nodes=unvisited_nodes)
+
+        elif choice == "UCS Tree Diagonal":
+            print("\nRunning Uniform Cost Tree Search (UCS - Diagonal enabled)...")
+            ucs_path, visited_nodes, unvisited_nodes = ucs_tree_search(self.program, include_diagonal_movement=True)
             print("Path (UCS):", ucs_path)
 
             if ucs_path:
@@ -590,14 +695,12 @@ def ucs_tree_search(program, include_diagonal_movement=False):
         print("Start or goal not found!")
         return [], set()
 
-    # Priority queue: (cost, current_position, path)
-    #open_set = PriorityQueue()
-    #open_set.put((0, start, [start]))
     open_set = []
     heapq.heappush(open_set, (0, start, []))  # (cost, state, path)
-    #updated_map = [row[:] for row in map]
     visited = set()
     unvisited = set()
+    total_nodes_visited = 0
+    move_cost = 0
 
     # Define movement directions
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, down, left, right
@@ -611,7 +714,7 @@ def ucs_tree_search(program, include_diagonal_movement=False):
             #continue
 
         visited.add(current)
-
+        total_nodes_visited += 1
 
         # Check if the goal is reached
         if current == goal:
@@ -623,6 +726,7 @@ def ucs_tree_search(program, include_diagonal_movement=False):
             memory_after = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
             print(f"Memory Used: {memory_after - memory_before:.4f} MB")
             print("Total nodes visited: ", total_nodes_visited)
+            print("Total cost of execution: ", move_cost)
             return path, visited, unvisited
 
         for dr, dc in directions:
@@ -633,11 +737,84 @@ def ucs_tree_search(program, include_diagonal_movement=False):
                 and map[neighbor[0]][neighbor[1]] != 99
                 and neighbor not in visited
             ):
-                move_cost = diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
+                move_cost += diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
                 heapq.heappush(open_set, (cost + move_cost, neighbor, path + [current]))
 
     print("No path found!")
     return [], visited
+
+def ucs_graph_search(program, include_diagonal_movement=False):
+    # Note down method start time
+    start_time = time.time()
+
+    # Note down memory before the process
+    process = psutil.Process()
+    memory_before = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
+
+    diagonal_cost = math.sqrt(2)
+    map = program.map
+    start, goal = None, None
+
+    # Locate the start and goal points
+    for i in range(program.MapSize):
+        for j in range(program.MapSize):
+            if map[i][j] == 1:
+                start = (i, j)
+            elif map[i][j] == 2:
+                goal = (i, j)
+
+    if not start or not goal:
+        print("Start or goal not found!")
+        return [], set()
+
+    open_set = []
+    heapq.heappush(open_set, (0, start, []))  # (cost, state, path)
+    visited = set()
+    unvisited = set()
+    total_nodes_visited = 0
+    move_cost = 0
+
+    # Define movement directions
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, down, left, right
+    if include_diagonal_movement:
+        directions.extend([(-1, -1), (-1, 1), (1, -1), (1, 1)])  # Diagonals
+
+    while open_set:
+        cost, current, path = heapq.heappop(open_set)
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+        total_nodes_visited += 1
+
+        # Check if the goal is reached
+        if current == goal:
+            for _, position, _ in open_set:
+                unvisited.add(position)
+            end_time = time.time()  # `Measure end time to calculate execution time
+            print("Execution Time: {:.6f} seconds".format(end_time - start_time))
+            # Memory usage after the function
+            memory_after = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
+            print(f"Memory Used: {memory_after - memory_before:.4f} MB")
+            print("Total nodes visited: ", total_nodes_visited)
+            print("Total cost of execution: ", move_cost)
+            return path, visited, unvisited
+
+        for dr, dc in directions:
+            neighbor = (current[0] + dr, current[1] + dc)
+            if (
+                0 <= neighbor[0] < program.MapSize
+                and 0 <= neighbor[1] < program.MapSize
+                and map[neighbor[0]][neighbor[1]] != 99
+                and neighbor not in visited
+            ):
+                move_cost += diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
+                heapq.heappush(open_set, (cost + move_cost, neighbor, path + [current]))
+
+    print("No path found!")
+    return [], visited
+
 
 
 # Run the program

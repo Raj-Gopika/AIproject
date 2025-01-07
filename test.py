@@ -38,71 +38,69 @@ class Program:
         self.map[start[0]][start[1]] = 1
         self.map[goal[0]][goal[1]] = 2
 
-        trail = self.create_trail(start, goal)
 
         num_obstacles = random.randint(1,self.MapSize // 2)
         for _ in range(num_obstacles):
-            self.add_obstacles(trail)
+            self.add_obstacles()
 
-    def add_obstacles(self,trail):
-        trail_set = set(trail)
+    def add_obstacles(self):
+        #trail_set = set(trail)
         random_row = random.randint(1, self.MapSize - 2)
         random_col = random.randint(1, self.MapSize - 2)
 
         choice = random.choice(["Square", "Line", "T_Line"])
         if choice == "Square":
-            self.add_square(random_row, random_col, trail_set)
+            self.add_square(random_row, random_col)
         elif choice == "Line":
-            self.add_line(random_row, random_col, trail_set)
+            self.add_line(random_row, random_col)
         elif choice == "T_Line":
-            self.add_t_line(random_row, random_col, trail_set)
+            self.add_t_line(random_row, random_col)
 
-
-    def add_square(self, random_row, random_col, trail_set):
+    def add_square(self, random_row, random_col):
         for i in range(9):
             r = i // 3
             c = i % 3
-            if self.check_bounds_and_start_end(random_row + r, random_col + c) and (random_row + r, random_col + c) not in trail_set:
+            if self.check_bounds_and_start_end(random_row + r, random_col + c):
                 self.map[random_row + r][random_col + c] = 99
 
-    def add_line(self, random_row, random_col, trail_set):
+    def add_line(self, random_row, random_col):
         direction = random.randint(1, 4)
         length = self.MapSize // 3
 
         for i in range(length):
             if direction == 1:  # Vertical up
                 r = random_row - i
-                if self.check_bounds_and_start_end(r, random_col) and (r, random_col) not in trail_set:
+                if self.check_bounds_and_start_end(r, random_col):
                     self.map[r][random_col] = 99
             elif direction == 2:  # Horizontal left
                 c = random_col - i
-                if self.check_bounds_and_start_end(random_row, c) and (random_row, c) not in trail_set:
+                if self.check_bounds_and_start_end(random_row, c):
                     self.map[random_row][c] = 99
             elif direction == 3:  # Vertical down
                 r = random_row + i
-                if self.check_bounds_and_start_end(r, random_col) and (r, random_col) not in trail_set:
+                if self.check_bounds_and_start_end(r, random_col):
                     self.map[r][random_col] = 99
             elif direction == 4:  # Horizontal right
                 c = random_col + i
-                if self.check_bounds_and_start_end(random_row, c) and (random_row, c) not in trail_set:
+                if self.check_bounds_and_start_end(random_row, c):
                     self.map[random_row][c] = 99
 
-    def add_t_line(self, random_row, random_col, trail_set):
+    def add_t_line(self, random_row, random_col):
         hor_v = random.randint(1, 2)
         for i in range(10):
             if hor_v == 1:  # Horizontal base, vertical stem
                 if i < 5:  # Vertical stem
-                    if self.check_bounds_and_start_end(random_row + i, random_col) and (random_row + i, random_col) not in trail_set:
+                    if self.check_bounds_and_start_end(random_row + i, random_col):
                         self.map[random_row + i][random_col] = 99
                 else:  # Horizontal base
-                    if self.check_bounds_and_start_end(random_row + 2, random_col + i - 5) and (random_row + 2, random_col + i - 5) not in trail_set:
+                    if self.check_bounds_and_start_end(random_row + 2, random_col + i - 5):
                         self.map[random_row + 2][random_col + i - 5] = 99
             else:  # Vertical base, horizontal stem
                 if i < 5:  # Horizontal stem
-                    if self.check_bounds_and_start_end(random_row, random_col + i) and (random_row + i, random_col) not in trail_set:
+                    if self.check_bounds_and_start_end(random_row, random_col + i):
                         self.map[random_row][random_col + i] = 99
                 else:  # Vertical base
-                    if self.check_bounds_and_start_end(random_row + i - 5, random_col + 2) and (random_row + 2, random_col + i - 5) not in trail_set:
+                    if self.check_bounds_and_start_end(random_row + i - 5, random_col + 2):
                         self.map[random_row + i - 5][random_col + 2] = 99
 
     def check_bounds_and_start_end(self, x, y):
@@ -112,24 +110,16 @@ class Program:
             return False
         return True
 
-    def create_trail(self, start_point, goal):
-        c = goal[1] - 1
-        r = goal[0]
-        trail = []
+    #Agent radius is double
+    def is_adjacent_to_obstacle(self, row, col):
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1),  # Cardinal directions
+                      (-1, -1), (-1, 1), (1, -1), (1, 1)]  # Diagonals
 
-        # Move horizontally towards the start column
-        while c != start_point[1]:
-            self.map[goal[0]][c] = 6
-            trail.append((goal[0], c))
-            c += 1 if start_point[1] > c else -1
-
-        # Move vertically towards the start row
-        while r != start_point[0]:
-            self.map[r][c] = 6
-            trail.append((r, c))
-            r += 1 if start_point[0] > r else -1
-
-        return trail
+        for dr, dc in directions:
+            nr, nc = row + dr, col + dc
+            if 0 <= nr < len(self.map) and 0 <= nc < len(self.map[0]) and self.map[nr][nc] == 99:
+                return True  # Adjacent to an obstacle
+        return False
 
     def set_walls(self):
         for i in range(self.MapSize):
@@ -140,7 +130,7 @@ class Program:
     def display_map(self):
         for row in self.map:
             print(" ".join(str(cell).rjust(3) for cell in row))
-    
+
 #Create GUI for displaying Map
 class MapVisualizer:
     def __init__(self, program):
@@ -152,7 +142,7 @@ class MapVisualizer:
         # Dropdown menu options
         self.search_method = tk.StringVar(self.root)
         self.search_method.set("None")  # Default value
-        options = ["None", "BFS Graph Simple", "BFS Graph Diagonal", "BFS Tree Simple",
+        options = ["None","DFS Graph","DFS Tree", "BFS Graph Simple", "BFS Graph Diagonal", "BFS Tree Simple",
                    "BFS Tree Diagonal", "A* Graph", "A* Tree", "UCS Graph Simple",  "UCS Graph Diagonal",
                    "UCS Tree Simple", "UCS Tree Diagonal"]
 
@@ -169,6 +159,31 @@ class MapVisualizer:
     def run_search(self, choice):
         if choice == "None":
             self.display_map()  # Display the map without any path
+
+
+        elif choice == "DFS Graph":
+            print("\nRunning DFS Graph Search...")
+            dfs_path_graph= dfs_graph(self.program)
+            print("Path (DFS Graph Search):", dfs_path_graph)
+
+            if dfs_path_graph:
+                print("Displaying path from Graph Search...")
+                for r, c in dfs_path_graph:
+                    if self.program.map[r][c] == 0:  # Mark path in the grid
+                        self.program.map[r][c] = 5
+                self.display_map(path=dfs_path_graph)
+
+        elif choice == "DFS Tree":
+            print("\nRunning DFS Tree Search...")
+            dfs_path_tree= dfs_tree(self.program)
+            print("Path (DFS Tree Search):", dfs_path_tree)
+
+            if dfs_path_tree:
+                print("Displaying path from Graph Search...")
+                for r, c in dfs_path_tree:
+                    if self.program.map[r][c] == 0:  # Mark path in the grid
+                        self.program.map[r][c] = 5
+                self.display_map(path=dfs_path_tree)
 
         elif choice == "BFS Graph Simple":
             print("\nRunning BFS Graph Search...(Simple)")
@@ -680,7 +695,7 @@ def ucs_tree_search(program, include_diagonal_movement=False):
             memory_after = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
             print(f"Memory Used: {memory_after - memory_before:.4f} MB")
             print("Total nodes visited: ", total_nodes_visited)
-            print("Total cost of execution: ", move_cost)
+            print("Total cost of execution: ", cost)
             return path, visited, unvisited
 
         for dr, dc in directions:
@@ -691,7 +706,7 @@ def ucs_tree_search(program, include_diagonal_movement=False):
                 and map[neighbor[0]][neighbor[1]] != 99
                 and neighbor not in visited
             ):
-                move_cost += diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
+                move_cost = diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
                 heapq.heappush(open_set, (cost + move_cost, neighbor, path + [current]))
 
     print("No path found!")
@@ -752,7 +767,7 @@ def ucs_graph_search(program, include_diagonal_movement=False):
             memory_after = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
             print(f"Memory Used: {memory_after - memory_before:.4f} MB")
             print("Total nodes visited: ", total_nodes_visited)
-            print("Total cost of execution: ", move_cost)
+            print("Total cost of execution: ", cost)
             return path, visited, unvisited
 
         for dr, dc in directions:
@@ -763,12 +778,138 @@ def ucs_graph_search(program, include_diagonal_movement=False):
                 and map[neighbor[0]][neighbor[1]] != 99
                 and neighbor not in visited
             ):
-                move_cost += diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
+                move_cost = diagonal_cost if abs(dr) + abs(dc) == 2 else 1  # Adjust cost for diagonal
                 heapq.heappush(open_set, (cost + move_cost, neighbor, path + [current]))
 
     print("No path found!")
     return [], visited
 
+def dfs_graph(program):
+
+    # Note down method start time
+    start_time = time.time()
+
+    # Note down memory before the process
+    process = psutil.Process()
+    memory_before = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
+
+    grid = program.map
+    rows, cols = program.MapSize, program.MapSize
+    start, goal = None, None
+
+    # Locate start and goal points
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == 1:
+                start = (r, c)
+            elif grid[r][c] == 2:
+                goal = (r, c)
+
+    if not start or not goal:
+        print("Start or goal not found!")
+        return []
+
+    # DFS initialization
+    stack = [[start]]  # Stack for DFS paths
+    visited = set()
+    total_nodes_visited = 0
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, down, left, right
+
+    while stack:
+        path = stack.pop()  # Pop the last path (LIFO)
+        current = path[-1]
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+        total_nodes_visited += 1
+
+        # Check if goal is reached
+        if current == goal:
+            end_time = time.time()
+            memory_after = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
+            print("Execution Time: {:.6f} seconds".format(end_time - start_time))
+            print(f"Memory Used: {memory_after - memory_before:.4f} MB")
+            print("Total nodes visited: ", total_nodes_visited)
+            return path
+
+        # Explore neighbors
+        for dr, dc in directions:
+            neighbor = (current[0] + dr, current[1] + dc)
+
+            # Check bounds and obstacle
+            if (
+                0 <= neighbor[0] < rows
+                and 0 <= neighbor[1] < cols
+                and grid[neighbor[0]][neighbor[1]] != 99
+                and neighbor not in visited
+            ):
+                stack.append(path + [neighbor])
+
+    return []  # Return empty list if no path is found
+
+
+def dfs_tree(program):
+
+    # Note down method start time
+    start_time = time.time()
+
+    # Note down memory before the process
+    process = psutil.Process()
+    memory_before = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
+
+    grid = program.map
+    rows, cols = program.MapSize, program.MapSize
+    start, goal = None, None
+
+    # Locate start and goal points
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == 1:
+                start = (r, c)
+            elif grid[r][c] == 2:
+                goal = (r, c)
+
+    if not start or not goal:
+        print("Start or goal not found!")
+        return []
+
+    # DFS initialization
+    stack = [[start]]  # Stack for DFS paths
+    visited = set()
+    total_nodes_visited = 0
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, down, left, right
+
+    while stack:
+        path = stack.pop()  # Pop the last path (LIFO)
+        current = path[-1]
+
+        visited.add(current)
+        total_nodes_visited += 1
+
+        # Check if goal is reached
+        if current == goal:
+            end_time = time.time()
+            memory_after = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
+            print("Execution Time: {:.6f} seconds".format(end_time - start_time))
+            print(f"Memory Used: {memory_after - memory_before:.4f} MB")
+            print("Total nodes visited: ", total_nodes_visited)
+            return path
+
+        # Explore neighbors
+        for dr, dc in directions:
+            neighbor = (current[0] + dr, current[1] + dc)
+
+            # Check bounds and obstacle
+            if (
+                0 <= neighbor[0] < rows
+                and 0 <= neighbor[1] < cols
+                and grid[neighbor[0]][neighbor[1]] != 99
+            ):
+                stack.append(path + [neighbor])
+
+    return []  # Return empty list if no path is found
 
 
 # Run the program

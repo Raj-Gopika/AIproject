@@ -38,70 +38,69 @@ class Program:
         self.map[start[0]][start[1]] = 1
         self.map[goal[0]][goal[1]] = 2
 
-        trail = self.create_trail(start, goal)
 
         num_obstacles = random.randint(1,self.MapSize // 2)
         for _ in range(num_obstacles):
-            self.add_obstacles(trail)
+            self.add_obstacles()
 
-    def add_obstacles(self,trail):
-        trail_set = set(trail)
+    def add_obstacles(self):
+        #trail_set = set(trail)
         random_row = random.randint(1, self.MapSize - 2)
         random_col = random.randint(1, self.MapSize - 2)
 
         choice = random.choice(["Square", "Line", "T_Line"])
         if choice == "Square":
-            self.add_square(random_row, random_col, trail_set)
+            self.add_square(random_row, random_col)
         elif choice == "Line":
-            self.add_line(random_row, random_col, trail_set)
+            self.add_line(random_row, random_col)
         elif choice == "T_Line":
-            self.add_t_line(random_row, random_col, trail_set)
+            self.add_t_line(random_row, random_col)
 
-    def add_square(self, random_row, random_col, trail_set):
+    def add_square(self, random_row, random_col):
         for i in range(9):
             r = i // 3
             c = i % 3
-            if self.check_bounds_and_start_end(random_row + r, random_col + c) and (random_row + r, random_col + c) not in trail_set:
+            if self.check_bounds_and_start_end(random_row + r, random_col + c):
                 self.map[random_row + r][random_col + c] = 99
 
-    def add_line(self, random_row, random_col, trail_set):
+    def add_line(self, random_row, random_col):
         direction = random.randint(1, 4)
         length = self.MapSize // 3
 
         for i in range(length):
             if direction == 1:  # Vertical up
                 r = random_row - i
-                if self.check_bounds_and_start_end(r, random_col) and (r, random_col) not in trail_set:
+                if self.check_bounds_and_start_end(r, random_col):
                     self.map[r][random_col] = 99
             elif direction == 2:  # Horizontal left
                 c = random_col - i
-                if self.check_bounds_and_start_end(random_row, c) and (random_row, c) not in trail_set:
+                if self.check_bounds_and_start_end(random_row, c):
                     self.map[random_row][c] = 99
             elif direction == 3:  # Vertical down
                 r = random_row + i
-                if self.check_bounds_and_start_end(r, random_col) and (r, random_col) not in trail_set:
+                if self.check_bounds_and_start_end(r, random_col):
                     self.map[r][random_col] = 99
             elif direction == 4:  # Horizontal right
                 c = random_col + i
-                if self.check_bounds_and_start_end(random_row, c) and (random_row, c) not in trail_set:
+                if self.check_bounds_and_start_end(random_row, c):
                     self.map[random_row][c] = 99
 
-    def add_t_line(self, random_row, random_col, trail_set):
+    def add_t_line(self, random_row, random_col):
         hor_v = random.randint(1, 2)
         for i in range(10):
             if hor_v == 1:  # Horizontal base, vertical stem
                 if i < 5:  # Vertical stem
-                    if self.check_bounds_and_start_end(random_row + i, random_col) and (random_row + i, random_col) not in trail_set:
+                    if self.check_bounds_and_start_end(random_row + i, random_col):
                         self.map[random_row + i][random_col] = 99
                 else:  # Horizontal base
-                    if self.check_bounds_and_start_end(random_row + 2, random_col + i - 5) and (random_row + 2, random_col + i - 5) not in trail_set:
+                    if self.check_bounds_and_start_end(random_row + 2, random_col + i - 5):
                         self.map[random_row + 2][random_col + i - 5] = 99
             else:  # Vertical base, horizontal stem
                 if i < 5:  # Horizontal stem
-                    if self.check_bounds_and_start_end(random_row, random_col + i) and (random_row + i, random_col) not in trail_set:
+                    if self.check_bounds_and_start_end(random_row, random_col + i):
                         self.map[random_row][random_col + i] = 99
                 else:  # Vertical base
-                    if self.check_bounds_and_start_end(random_row + i - 5, random_col + 2) and (random_row + 2, random_col + i - 5) not in trail_set:
+                    if self.check_bounds_and_start_end(random_row + i - 5, random_col + 2):
                         self.map[random_row + i - 5][random_col + 2] = 99
 
     def check_bounds_and_start_end(self, x, y):
@@ -111,24 +110,16 @@ class Program:
             return False
         return True
 
-    def create_trail(self, start_point, goal):
-        c = goal[1] - 1
-        r = goal[0]
-        trail = []
+    #Agent radius is double
+    def is_adjacent_to_obstacle(self, row, col):
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1),  # Cardinal directions
+                      (-1, -1), (-1, 1), (1, -1), (1, 1)]  # Diagonals
 
-        # Move horizontally towards the start column
-        while c != start_point[1]:
-            self.map[goal[0]][c] = 6
-            trail.append((goal[0], c))
-            c += 1 if start_point[1] > c else -1
-
-        # Move vertically towards the start row
-        while r != start_point[0]:
-            self.map[r][c] = 6
-            trail.append((r, c))
-            r += 1 if start_point[0] > r else -1
-
-        return trail
+        for dr, dc in directions:
+            nr, nc = row + dr, col + dc
+            if 0 <= nr < len(self.map) and 0 <= nc < len(self.map[0]) and self.map[nr][nc] == 99:
+                return True  # Adjacent to an obstacle
+        return False
 
     def set_walls(self):
         for i in range(self.MapSize):
